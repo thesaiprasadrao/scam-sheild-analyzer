@@ -17,6 +17,8 @@ interface AnalysisResult {
     description: string
   }>
   recommendedActions: string[]
+  gemini_confidence?: number
+  analysis_method?: string
 }
 
 export default function ScamShieldAnalyzer() {
@@ -45,22 +47,61 @@ export default function ScamShieldAnalyzer() {
         formData.append('message_screenshot', uploadedFile)
       }
 
-      const response = await fetch('http://localhost:8000/api/analyze', {
-        method: 'POST',
-        body: formData,
-      })
+      // Try different backend URLs based on current frontend URL
+      const currentHost = window.location.hostname
+      const backendUrls = [
+        'http://localhost:8000/api/analyze',
+        `http://${currentHost}:8000/api/analyze`,
+        'http://127.0.0.1:8000/api/analyze'
+      ]
+
+      let response: Response | null = null
+      let lastError: Error | null = null
+
+      // Try each backend URL until one works
+      for (const backendUrl of backendUrls) {
+        try {
+          console.log('Attempting to connect to backend at:', backendUrl)
+          response = await fetch(backendUrl, {
+            method: 'POST',
+            body: formData,
+          })
+          
+          if (response.ok) {
+            console.log('Successfully connected to backend at:', backendUrl)
+            break
+          } else {
+            console.warn(`Backend responded with error ${response.status} at ${backendUrl}`)
+          }
+        } catch (error) {
+          console.warn(`Failed to connect to ${backendUrl}:`, error)
+          lastError = error as Error
+          response = null
+        }
+      }
+
+      if (!response) {
+        throw lastError || new Error('All backend connection attempts failed')
+      }
+
+      console.log('Response status:', response.status)
+      console.log('Response headers:', response.headers)
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorText = await response.text()
+        console.error('API Error:', errorText)
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
       }
 
       const result: AnalysisResult = await response.json()
+      console.log('Analysis result:', result)
       setAnalysisResult(result)
       setCurrentScreen("results")
     } catch (error) {
       console.error('Error analyzing message:', error)
-      // Show error to user or fallback to mock data
-      alert('Error connecting to analysis service. Please try again.')
+      // More detailed error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Error connecting to analysis service: ${errorMessage}. Please check if the backend is running on port 8000.`)
     } finally {
       setIsAnalyzing(false)
     }
@@ -160,6 +201,51 @@ export default function ScamShieldAnalyzer() {
               <CardContent>
                 <div className="bg-muted p-4 rounded-lg">
                   <p className="text-sm whitespace-pre-wrap">{analysisResult.analyzedText}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* AI Analysis Information */}
+          {(analysisResult.gemini_confidence !== undefined || analysisResult.analysis_method) && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="font-serif text-xl flex items-center gap-2">
+                  🤖 AI Analysis Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {analysisResult.analysis_method && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="font-medium">Analysis Method:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        analysisResult.analysis_method === 'AI_ENHANCED' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {analysisResult.analysis_method === 'AI_ENHANCED' ? '🧠 AI Enhanced' : '📝 Pattern Based'}
+                      </span>
+                    </div>
+                  )}
+                  {analysisResult.gemini_confidence !== undefined && analysisResult.gemini_confidence > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="font-medium">AI Confidence:</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-500"
+                            style={{ width: `${(analysisResult.gemini_confidence * 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-mono">
+                          {(analysisResult.gemini_confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
