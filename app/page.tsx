@@ -9,15 +9,60 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, ShieldAlert, Upload, FileText, Clock, Phone, HelpCircle, CheckCircle, ArrowLeft } from "lucide-react"
 
+interface AnalysisResult {
+  riskLevel: string
+  analyzedText: string
+  redFlags: Array<{
+    title: string
+    description: string
+  }>
+  recommendedActions: string[]
+}
+
 export default function ScamShieldAnalyzer() {
   const [currentScreen, setCurrentScreen] = useState<"input" | "results">("input")
   const [inputText, setInputText] = useState("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [activeTab, setActiveTab] = useState("text")
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-  const handleAnalyze = () => {
-    if (inputText.trim() || uploadedFile) {
+  const handleAnalyze = async () => {
+    if (!inputText.trim() && !uploadedFile) {
+      return
+    }
+
+    setIsAnalyzing(true)
+    
+    try {
+      const formData = new FormData()
+      
+      if (inputText.trim()) {
+        formData.append('message_text', inputText.trim())
+      }
+      
+      if (uploadedFile) {
+        formData.append('message_screenshot', uploadedFile)
+      }
+
+      const response = await fetch('http://localhost:8000/api/analyze', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: AnalysisResult = await response.json()
+      setAnalysisResult(result)
       setCurrentScreen("results")
+    } catch (error) {
+      console.error('Error analyzing message:', error)
+      // Show error to user or fallback to mock data
+      alert('Error connecting to analysis service. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
     }
   }
 
@@ -33,9 +78,49 @@ export default function ScamShieldAnalyzer() {
     setInputText("")
     setUploadedFile(null)
     setActiveTab("text")
+    setAnalysisResult(null)
+    setIsAnalyzing(false)
   }
 
-  if (currentScreen === "results") {
+  if (currentScreen === "results" && analysisResult) {
+    const getRiskLevelDisplay = (riskLevel: string) => {
+      switch (riskLevel) {
+        case 'HIGH_RISK':
+          return {
+            icon: <ShieldAlert className="h-6 w-6" />,
+            title: '🔴 HIGH RISK',
+            description: 'This message has several characteristics of a known scam.',
+            className: 'border-destructive bg-destructive/5',
+            titleClassName: 'text-destructive',
+            descriptionClassName: 'text-destructive/80',
+            bgClassName: 'bg-destructive text-destructive-foreground'
+          }
+        case 'MEDIUM_RISK':
+          return {
+            icon: <ShieldAlert className="h-6 w-6" />,
+            title: '🟡 MEDIUM RISK',
+            description: 'This message contains some suspicious elements that warrant caution.',
+            className: 'border-orange-500 bg-orange-50',
+            titleClassName: 'text-orange-600',
+            descriptionClassName: 'text-orange-600/80',
+            bgClassName: 'bg-orange-500 text-white'
+          }
+        case 'LOOKS_SAFE':
+        default:
+          return {
+            icon: <Shield className="h-6 w-6" />,
+            title: '🟢 LOOKS SAFE',
+            description: 'This message appears to be legitimate with no major red flags detected.',
+            className: 'border-green-500 bg-green-50',
+            titleClassName: 'text-green-600',
+            descriptionClassName: 'text-green-600/80',
+            bgClassName: 'bg-green-500 text-white'
+          }
+      }
+    }
+
+    const riskDisplay = getRiskLevelDisplay(analysisResult.riskLevel)
+
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -50,57 +135,59 @@ export default function ScamShieldAnalyzer() {
 
         <main className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Results Summary Card */}
-          <Card className="mb-8 border-destructive bg-destructive/5">
+          <Card className={`mb-8 ${riskDisplay.className}`}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive text-destructive-foreground">
-                  <ShieldAlert className="h-6 w-6" />
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full ${riskDisplay.bgClassName}`}>
+                  {riskDisplay.icon}
                 </div>
                 <div>
-                  <CardTitle className="text-destructive text-xl">🔴 HIGH RISK</CardTitle>
-                  <CardDescription className="text-destructive/80 text-base">
-                    This message has several characteristics of a known scam.
+                  <CardTitle className={`${riskDisplay.titleClassName} text-xl`}>{riskDisplay.title}</CardTitle>
+                  <CardDescription className={`${riskDisplay.descriptionClassName} text-base`}>
+                    {riskDisplay.description}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
           </Card>
 
+          {/* Analyzed Text */}
+          {analysisResult.analyzedText && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="font-serif text-xl">Analyzed Message</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-sm whitespace-pre-wrap">{analysisResult.analyzedText}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Breakdown of Red Flags */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="font-serif text-xl">Breakdown of Red Flags</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-muted">
-                <Clock className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-destructive">Urgency & Fear Tactic</h3>
-                  <p className="text-muted-foreground">The message creates panic by threatening immediate action.</p>
+          {analysisResult.redFlags.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="font-serif text-xl">Breakdown of Red Flags</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analysisResult.redFlags.map((flag, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-destructive text-destructive-foreground text-xs font-bold mt-0.5">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-destructive mb-1">{flag.title}</h3>
+                        <p className="text-sm text-muted-foreground">{flag.description}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-muted">
-                <Phone className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-destructive">Suspicious Contact Method</h3>
-                  <p className="text-muted-foreground">
-                    It asks you to call a personal mobile number, not an official helpline.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-muted">
-                <HelpCircle className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-destructive">Vague Details</h3>
-                  <p className="text-muted-foreground">
-                    Lacks specific information like an account number, which a real company would provide.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recommended Actions */}
           <Card className="mb-8">
@@ -110,22 +197,12 @@ export default function ScamShieldAnalyzer() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-accent" />
-                  <span>Do NOT click any links or call the number.</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-accent" />
-                  <span>Do NOT share any personal information.</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-accent" />
-                  <span>Block this sender immediately.</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-accent" />
-                  <span>Delete this message.</span>
-                </div>
+                {analysisResult.recommendedActions.map((action, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-accent" />
+                    <span>{action}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -241,11 +318,11 @@ export default function ScamShieldAnalyzer() {
         <div className="text-center">
           <Button
             onClick={handleAnalyze}
-            disabled={!inputText.trim() && !uploadedFile}
+            disabled={(!inputText.trim() && !uploadedFile) || isAnalyzing}
             size="lg"
             className="px-8 py-3 text-lg"
           >
-            Analyze Message
+            {isAnalyzing ? "Analyzing..." : "Analyze Message"}
           </Button>
         </div>
       </main>
