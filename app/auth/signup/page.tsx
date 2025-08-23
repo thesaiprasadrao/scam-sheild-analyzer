@@ -59,7 +59,7 @@ export default function SignUpPage() {
         throw new Error("Registration successful, but failed to sign in. Please try signing in manually.")
       }
       
-      router.push("/dashboard")
+      router.push("/onboarding")
     } catch (err: any) {
       setError(err.message || "Something went wrong")
     } finally {

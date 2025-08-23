@@ -10,6 +10,7 @@ const publicPaths = [
   "/auth/error",
   "/api/auth",
   "/api/register",
+  "/onboarding",
 ]
 
 // protected paths that require auth
@@ -41,6 +42,12 @@ export default async function middleware(req: NextRequest) {
       url.searchParams.set("callbackUrl", req.nextUrl.pathname + req.nextUrl.search)
       return NextResponse.redirect(url)
     }
+    
+    // Check if user has completed onboarding (except for onboarding page itself)
+    if (pathname !== "/onboarding" && token && !token.profileCompleted) {
+      const onboardingUrl = new URL("/onboarding", req.url)
+      return NextResponse.redirect(onboardingUrl)
+    }
   }
   
   return NextResponse.next()
@@ -49,6 +56,7 @@ export default async function middleware(req: NextRequest) {
 export const config = { 
   matcher: [
     "/dashboard/:path*",
-    "/protected/:path*"
+    "/protected/:path*",
+    "/onboarding/:path*"
   ] 
 }

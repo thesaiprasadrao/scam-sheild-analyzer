@@ -1,32 +1,30 @@
 [
   {
-    "id": "5ef7a21a-1ea5-4fe9-b343-0a6dc09cc7e8",
-    "email": "heavyyyrainnnn@gmail.com",
-    "name": "heavyyyrainnnn@gmail.com",
-    "passwordHash": "h70359ab1"
-  },
-  {
-    "id": "2495b2a7-aa0f-44df-9f79-88b01af5d64c",
-    "email": "itwasneverme1234@gmail.com",
-    "name": "test1",
-    "passwordHash": "hb5f7b4c2"
-  },
-  {
-    "id": "3bc0d335-3998-4b0d-b465-bee1f24f1a09",
-    "email": "saiprasadrao1234@gmail.com",
+    "id": "f0762b80-628a-4dea-8d6e-b4dcae4a42c6",
+    "email": "tester@test.com",
     "name": "abc",
-    "passwordHash": "hbecdc5b1"
+    "passwordHash": "hab373210",
+    "profileCompleted": true,
+    "createdAt": "2025-08-23T05:44:38.251Z",
+    "profileType": "new-to-internet",
+    "preferences": {
+      "fontSize": "large",
+      "simplifiedUI": true,
+      "voiceEnabled": true
+    }
   },
   {
-    "id": "65ea11f6-9db3-4970-8b30-4757143a9788",
-    "email": "test@testing.com",
-    "name": "test2",
-    "passwordHash": "hcbb774bf"
-  },
-  {
-    "id": "fc77f4df-5e6d-48c3-a3cb-edaffb84036d",
-    "email": "test3@tester.com",
-    "name": "test3",
-    "passwordHash": "hab372354"
+    "id": "d66a6d4e-35db-4e70-9aea-da775d89423c",
+    "email": "testQ@tester.com",
+    "name": "test1",
+    "passwordHash": "hab373210",
+    "profileCompleted": true,
+    "createdAt": "2025-08-23T06:04:47.021Z",
+    "profileType": "student",
+    "preferences": {
+      "fontSize": "medium",
+      "simplifiedUI": false,
+      "voiceEnabled": false
+    }
   }
 ]

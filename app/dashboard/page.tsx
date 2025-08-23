@@ -317,11 +317,15 @@ export default function ScamShieldAnalyzer() {
         </Card>
 
         <div className="text-center">
-          <Button onClick={handleAnalyze} disabled={(!inputText.trim() && !uploadedFile) || isAnalyzing} size="lg" className="px-8 py-3 text-lg">
+          <Button 
+            onClick={handleAnalyze} 
+            disabled={(!inputText.trim() && !uploadedFile) || isAnalyzing} 
+            size="lg" 
+            className="px-8 py-3 text-lg"
+          >
             {isAnalyzing ? "Analyzing..." : "Analyze Message"}
           </Button>
         </div>
-         
 
         {process.env.NODE_ENV === "development" && (
           <div className="container mx-auto px-4">

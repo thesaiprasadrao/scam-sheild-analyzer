@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "next-auth/react"
 import { ThemeProvider } from "./theme-provider"
+import { UserProfileProvider } from "./user-profile-provider"
 import type { PropsWithChildren } from "react"
 
 export default function Providers({ children }: PropsWithChildren) {
@@ -13,7 +14,9 @@ export default function Providers({ children }: PropsWithChildren) {
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <UserProfileProvider>
+          {children}
+        </UserProfileProvider>
       </ThemeProvider>
     </SessionProvider>
   )
