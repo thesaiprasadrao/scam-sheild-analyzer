@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,6 +15,7 @@ import ProtectedPageWrapper from "@/components/protected-page-wrapper"
 import { SessionMonitor } from "@/components/session-monitor"
 import ScamEducationSection from "@/components/scam-education-section"
 import { useUserProfile } from "@/hooks/use-user-profile"
+import ProfileDropdown from "@/components/profile-dropdown"
 
 interface AnalysisResult {
   riskLevel: string
@@ -30,12 +32,37 @@ interface AnalysisResult {
 export default function ScamShieldAnalyzer() {
   const { data: session, status } = useSession()
   const { profile } = useUserProfile()
+  const router = useRouter()
   const [currentScreen, setCurrentScreen] = useState<"input" | "results">("input")
   const [inputText, setInputText] = useState("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [activeTab, setActiveTab] = useState("text")
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+  // Shared Header Component
+  const SharedHeader = () => (
+    <header className="border-b bg-card">
+        <div className="w-full px-4 md:px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left side - Logo with extra left padding */}
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => router.push('/dashboard')}
+          >
+            <Shield className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
+          </div>
+          
+          {/* Right side - Profile and Theme Toggle */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <ProfileDropdown />
+          </div>
+        </div>
+      </div>
+    </header>
+  )
 
   const handleAnalyze = async () => {
     if (!inputText.trim() && !uploadedFile) return
@@ -128,17 +155,17 @@ export default function ScamShieldAnalyzer() {
     const riskDisplay = getRiskLevelDisplay(analysisResult.riskLevel)
 
     return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
-            </div>
-          </div>
-        </header>
+      <ProtectedPageWrapper 
+        requireAuth={true}
+        redirectTo="/auth/signin"
+        onSessionInvalid={() => {
+          console.log("Session invalidated, redirecting to signin")
+        }}
+      >
+        <div className="min-h-screen bg-background">
+          <SharedHeader />
 
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <main className="container mx-auto px-4 py-8 max-w-4xl">
           <Card className={`mb-8 ${riskDisplay.className}`}>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -231,7 +258,8 @@ export default function ScamShieldAnalyzer() {
             </div>
           </div>
         </footer>
-      </div>
+        </div>
+      </ProtectedPageWrapper>
     )
   }
 
@@ -244,26 +272,9 @@ export default function ScamShieldAnalyzer() {
       }}
     >
       <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold font-serif text-primary">ScamShield Analyzer</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              {session?.user ? (
-                <button className="text-sm underline" onClick={() => signOut({ callbackUrl: "/auth/signin" })}>Sign out</button>
-              ) : (
-                <a href="/auth/signin" className="text-sm underline">Sign in</a>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+        <SharedHeader />
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <main className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold font-serif text-foreground mb-4">Think you've received a scam?</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">

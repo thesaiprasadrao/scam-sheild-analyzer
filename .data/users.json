@@ -6,7 +6,7 @@
     "passwordHash": "hab373210",
     "profileCompleted": true,
     "createdAt": "2025-08-23T05:44:38.251Z",
-    "profileType": "new-to-internet",
+    "profileType": "student",
     "preferences": {
       "fontSize": "large",
       "simplifiedUI": true,
@@ -39,6 +39,20 @@
       "fontSize": "large",
       "simplifiedUI": true,
       "voiceEnabled": true
+    }
+  },
+  {
+    "id": "9d21bb1a-a82f-4de2-9257-54695048da70",
+    "email": "testerN@test.com",
+    "name": "abc",
+    "passwordHash": "hcbb774bf",
+    "profileCompleted": true,
+    "createdAt": "2025-08-23T07:25:34.257Z",
+    "profileType": "senior-citizen",
+    "preferences": {
+      "fontSize": "medium",
+      "simplifiedUI": false,
+      "voiceEnabled": false
     }
   }
 ]
