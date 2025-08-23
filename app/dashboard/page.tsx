@@ -4,11 +4,13 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Shield, ShieldAlert, Upload, FileText, CheckCircle, ArrowLeft } from "lucide-react"
+import { Shield, ShieldAlert, Upload, FileText, CheckCircle, ArrowLeft, BookOpen, Newspaper } from "lucide-react"
 import ThemeToggle from "@/components/theme-toggle"
 import { useSession, signOut } from "next-auth/react"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
@@ -16,6 +18,7 @@ import { SessionMonitor } from "@/components/session-monitor"
 import ScamEducationSection from "@/components/scam-education-section"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import ProfileDropdown from "@/components/profile-dropdown"
+import ScrollToTop from "@/components/scroll-to-top"
 
 interface AnalysisResult {
   riskLevel: string
@@ -162,10 +165,10 @@ export default function ScamShieldAnalyzer() {
           console.log("Session invalidated, redirecting to signin")
         }}
       >
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background flex flex-col">
           <SharedHeader />
 
-          <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl overflow-y-auto">
           <Card className={`mb-8 ${riskDisplay.className}`}>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -259,6 +262,7 @@ export default function ScamShieldAnalyzer() {
           </div>
         </footer>
         </div>
+        <ScrollToTop />
       </ProtectedPageWrapper>
     )
   }
@@ -271,18 +275,28 @@ export default function ScamShieldAnalyzer() {
         console.log("Session invalidated, redirecting to signin")
       }}
     >
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <SharedHeader />
 
-        <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="text-center mb-12">
+        <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl overflow-y-auto">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-4xl md:text-5xl font-bold font-serif text-foreground mb-4">Think you've received a scam?</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Paste the message or upload a screenshot. We'll check it for common signs of fraud in seconds.
           </p>
-        </div>
+        </motion.div>
 
-        <Card className="mb-8 max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Card className="mb-8 max-w-2xl mx-auto">
           <CardHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
@@ -328,9 +342,15 @@ export default function ScamShieldAnalyzer() {
               </TabsContent>
             </Tabs>
           </CardHeader>
-        </Card>
+          </Card>
+        </motion.div>
 
-        <div className="text-center mb-8">
+        <motion.div
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           <Button 
             onClick={handleAnalyze} 
             disabled={(!inputText.trim() && !uploadedFile) || isAnalyzing} 
@@ -339,12 +359,132 @@ export default function ScamShieldAnalyzer() {
           >
             {isAnalyzing ? "Analyzing..." : "Analyze Message"}
           </Button>
-        </div>
+        </motion.div>        {/* Explore More Section */}
+        <motion.section 
+          className="mt-16 mb-12"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold font-serif text-foreground mb-4">Explore More</h3>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Enhance your security knowledge with these additional resources
+            </p>
+          </div>
 
-        {/* Scam Education Section */}
-        <div className="max-w-2xl mx-auto">
-          <ScamEducationSection userPersona={profile?.profileType || 'student'} />
-        </div>
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto md:grid-rows-1">
+            {/* Scam Education Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ 
+                duration: 0.8, 
+                delay: 0.4,
+                ease: [0.25, 0.46, 0.45, 0.94] // Custom cubic-bezier for smooth easing
+              }}
+              whileHover={{ 
+                scale: 1.03, 
+                y: -8,
+                transition: { 
+                  duration: 0.3,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              whileTap={{ 
+                scale: 0.97,
+                transition: { duration: 0.1 }
+              }}
+              className="h-full"
+            >
+              <Link href="/scam-education" className="block group h-full">
+                <Card className="h-full transition-all duration-300 hover:shadow-xl cursor-pointer border-2 hover:border-orange-300 bg-gradient-to-br from-orange-50 to-white hover:from-orange-100 hover:to-orange-50 flex flex-col">
+                  <CardContent className="p-8 text-center flex-1 flex flex-col justify-between">
+                    <div className="flex flex-col items-center">
+                      <motion.div 
+                        className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-orange-100 group-hover:bg-orange-200 transition-colors shadow-lg"
+                        whileHover={{ 
+                          rotate: 5, 
+                          scale: 1.15,
+                          transition: { 
+                            duration: 0.4,
+                            ease: [0.25, 0.46, 0.45, 0.94]
+                          }
+                        }}
+                      >
+                        <BookOpen className="h-10 w-10 text-orange-600" />
+                      </motion.div>
+                      <h4 className="text-2xl font-bold mb-3 group-hover:text-orange-600 transition-colors">
+                        How Scammers Might Target You
+                      </h4>
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
+                        Learn scams that target your persona and how to stay safe.
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center text-sm text-orange-600 font-semibold group-hover:text-orange-700 transition-colors mt-4">
+                      Explore Education →
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+
+            {/* Scam News Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ 
+                duration: 0.8, 
+                delay: 0.5,
+                ease: [0.25, 0.46, 0.45, 0.94] // Custom cubic-bezier for smooth easing
+              }}
+              whileHover={{ 
+                scale: 1.03, 
+                y: -8,
+                transition: { 
+                  duration: 0.3,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              whileTap={{ 
+                scale: 0.97,
+                transition: { duration: 0.1 }
+              }}
+              className="h-full"
+            >
+              <Link href="/scam-news" className="block group h-full">
+                <Card className="h-full transition-all duration-300 hover:shadow-xl cursor-pointer border-2 hover:border-orange-300 bg-gradient-to-br from-orange-50 to-white hover:from-orange-100 hover:to-orange-50 flex flex-col">
+                  <CardContent className="p-8 text-center flex-1 flex flex-col justify-between">
+                    <div className="flex flex-col items-center">
+                      <motion.div 
+                        className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-orange-100 group-hover:bg-orange-200 transition-colors shadow-lg"
+                        whileHover={{ 
+                          rotate: -5, 
+                          scale: 1.15,
+                          transition: { 
+                            duration: 0.4,
+                            ease: [0.25, 0.46, 0.45, 0.94]
+                          }
+                        }}
+                      >
+                        <Newspaper className="h-10 w-10 text-orange-600" />
+                      </motion.div>
+                      <h4 className="text-2xl font-bold mb-3 group-hover:text-orange-600 transition-colors">
+                        Live Scam News Feed
+                      </h4>
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
+                        Stay updated with the latest scam alerts and security warnings.
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center text-sm text-orange-600 font-semibold group-hover:text-orange-700 transition-colors">
+                      View News Feed →
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+          </div>
+        </motion.section>
 
         {process.env.NODE_ENV === "development" && (
           <div className="container mx-auto px-4">
