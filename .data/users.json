@@ -26,5 +26,19 @@
       "simplifiedUI": false,
       "voiceEnabled": false
     }
+  },
+  {
+    "id": "8421d263-bdfa-4f0b-bcde-d4aec4d55a7e",
+    "email": "abc@123.com",
+    "name": "abc",
+    "passwordHash": "hab199865",
+    "profileCompleted": true,
+    "createdAt": "2025-08-23T06:30:25.829Z",
+    "profileType": "senior-citizen",
+    "preferences": {
+      "fontSize": "large",
+      "simplifiedUI": true,
+      "voiceEnabled": true
+    }
   }
 ]

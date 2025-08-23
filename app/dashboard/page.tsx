@@ -12,6 +12,8 @@ import ThemeToggle from "@/components/theme-toggle"
 import { useSession, signOut } from "next-auth/react"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
 import { SessionMonitor } from "@/components/session-monitor"
+import ScamEducationSection from "@/components/scam-education-section"
+import { useUserProfile } from "@/hooks/use-user-profile"
 
 interface AnalysisResult {
   riskLevel: string
@@ -27,6 +29,7 @@ interface AnalysisResult {
 
 export default function ScamShieldAnalyzer() {
   const { data: session, status } = useSession()
+  const { profile } = useUserProfile()
   const [currentScreen, setCurrentScreen] = useState<"input" | "results">("input")
   const [inputText, setInputText] = useState("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -316,7 +319,7 @@ export default function ScamShieldAnalyzer() {
           </CardHeader>
         </Card>
 
-        <div className="text-center">
+        <div className="text-center mb-8">
           <Button 
             onClick={handleAnalyze} 
             disabled={(!inputText.trim() && !uploadedFile) || isAnalyzing} 
@@ -325,6 +328,11 @@ export default function ScamShieldAnalyzer() {
           >
             {isAnalyzing ? "Analyzing..." : "Analyze Message"}
           </Button>
+        </div>
+
+        {/* Scam Education Section */}
+        <div className="max-w-2xl mx-auto">
+          <ScamEducationSection userPersona={profile?.profileType || 'student'} />
         </div>
 
         {process.env.NODE_ENV === "development" && (
@@ -344,7 +352,7 @@ export default function ScamShieldAnalyzer() {
                 Privacy Policy
               </a>
             </div>
-            <p>Friday, August 22, 2025</p>
+            <p>Friday, August 23, 2025</p>
           </div>
         </div>
       </footer>
