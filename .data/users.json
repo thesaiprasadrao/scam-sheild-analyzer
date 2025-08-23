@@ -54,5 +54,13 @@
       "simplifiedUI": false,
       "voiceEnabled": false
     }
+  },
+  {
+    "id": "322b7fc9-9c44-4ac0-bf4d-7fd419365b2c",
+    "email": "omkar@gmail.in",
+    "name": "Om",
+    "passwordHash": "hf5cbfd37",
+    "profileCompleted": false,
+    "createdAt": "2025-08-23T10:34:25.019Z"
   }
 ]

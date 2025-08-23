@@ -1,43 +1,70 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shield, ArrowLeft, Newspaper, ExternalLink, Clock, TrendingUp } from "lucide-react"
+import { Shield, ArrowLeft, Newspaper, ExternalLink, Clock, TrendingUp, Loader2 } from "lucide-react"
 import ThemeToggle from "@/components/theme-toggle"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
 import ProfileDropdown from "@/components/profile-dropdown"
 
+interface NewsItem {
+  title: string;
+  description: string;
+  link: string;
+  pubDate: string;
+  source_id: string;
+  category?: string[];
+  content?: string;
+}
+
 export default function ScamNewsPage() {
   const router = useRouter()
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Shared Header Component
-  const SharedHeader = () => (
-    <header className="border-b bg-card">
-      <div className="w-full px-4 md:px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left side - Logo with extra left padding */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => router.push('/dashboard')}
-          >
-            <Shield className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
-          </div>
-          
-          {/* Right side - Profile and Theme Toggle */}
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <ProfileDropdown />
-          </div>
-        </div>
-      </div>
-    </header>
-  )
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch('/api/news')
+        if (!response.ok) {
+          throw new Error('Failed to fetch news')
+        }
+        const data = await response.json()
+        if (data.results) {
+          setNews(data.results)
+        } else {
+          setError('No news found')
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch news')
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  // Placeholder news data
+    fetchNews()
+  }, [])
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+    
+    if (diffHours < 24) {
+      return `${diffHours} hours ago`
+    } else {
+      const diffDays = Math.floor(diffHours / 24)
+      return `${diffDays} days ago`
+    }
+  }
+
+  // Backup static news data
   const newsItems = [
     {
       id: 1,
@@ -85,6 +112,30 @@ export default function ScamNewsPage() {
       source: "Education Today"
     }
   ]
+
+  // Shared Header Component
+  const SharedHeader = () => (
+    <header className="border-b bg-card">
+      <div className="w-full px-4 md:px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left side - Logo with extra left padding */}
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => router.push('/dashboard')}
+          >
+            <Shield className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
+          </div>
+          
+          {/* Right side - Profile and Theme Toggle */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <ProfileDropdown />
+          </div>
+        </div>
+      </div>
+    </header>
+  )
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -155,47 +206,60 @@ export default function ScamNewsPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold font-serif mb-6">Latest Scam Alerts</h2>
             
-            {newsItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className={getSeverityColor(item.severity)}>
-                          {item.severity} Risk
-                        </Badge>
-                        <Badge variant="secondary">{item.category}</Badge>
-                      </div>
-                      <CardTitle className="text-xl hover:text-primary cursor-pointer transition-colors">
-                        {item.title}
-                      </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {item.timeAgo}
-                        </div>
-                        <span>•</span>
-                        <span>{item.source}</span>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
-                      <ExternalLink className="h-3 w-3" />
-                      Read More
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{item.description}</p>
-                </CardContent>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <Card className="p-4">
+                <CardContent className="text-center text-red-500">{error}</CardContent>
               </Card>
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg" className="px-8">
-              Load More News
-            </Button>
+            ) : (
+              <>
+                {news.map((item, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className={getSeverityColor("Medium")}>
+                              Alert
+                            </Badge>
+                            {item.category?.map((cat, i) => (
+                              <Badge key={i} variant="secondary">{cat}</Badge>
+                            ))}
+                          </div>
+                          <CardTitle className="text-xl hover:text-primary cursor-pointer transition-colors">
+                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                              {item.title}
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </CardTitle>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDate(item.pubDate)}
+                            </div>
+                            <span>•</span>
+                            <span>{item.source_id}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+                {news.length === 0 && !error && (
+                  <Card className="p-4">
+                    <CardContent className="text-center text-muted-foreground">
+                      No news articles found
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
 
           {/* Info Card */}

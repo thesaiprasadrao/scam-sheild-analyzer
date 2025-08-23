@@ -188,7 +188,7 @@ export default function ScamShieldAnalyzer() {
           {analysisResult.analyzedText && (
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle className="font-serif text-xl">Analyzed Message</CardTitle>
+                <CardTitle className="font-serif text-xl text-black">Analyzed Message</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="bg-muted p-4 rounded-lg">
@@ -201,7 +201,7 @@ export default function ScamShieldAnalyzer() {
           {analysisResult.redFlags.length > 0 && (
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle className="font-serif text-xl">Breakdown of Red Flags</CardTitle>
+                <CardTitle className="font-serif text-xl text-black">Breakdown of Red Flags</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -223,7 +223,7 @@ export default function ScamShieldAnalyzer() {
 
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="font-serif text-xl">Recommended Actions</CardTitle>
+              <CardTitle className="font-serif text-xl text-black">Recommended Actions</CardTitle>
               <CardDescription>What you should do now:</CardDescription>
             </CardHeader>
             <CardContent>
@@ -414,7 +414,7 @@ export default function ScamShieldAnalyzer() {
                       >
                         <BookOpen className="h-10 w-10 text-orange-600" />
                       </motion.div>
-                      <h4 className="text-2xl font-bold mb-3 group-hover:text-orange-600 transition-colors">
+                      <h4 className="text-2xl font-bold mb-3 text-black group-hover:text-orange-600 transition-colors">
                         How Scammers Might Target You
                       </h4>
                       <p className="text-muted-foreground mb-6 leading-relaxed">
@@ -469,7 +469,7 @@ export default function ScamShieldAnalyzer() {
                       >
                         <Newspaper className="h-10 w-10 text-orange-600" />
                       </motion.div>
-                      <h4 className="text-2xl font-bold mb-3 group-hover:text-orange-600 transition-colors">
+                      <h4 className="text-2xl font-bold mb-3 text-black group-hover:text-orange-600 transition-colors">
                         Live Scam News Feed
                       </h4>
                       <p className="text-muted-foreground mb-6 leading-relaxed">

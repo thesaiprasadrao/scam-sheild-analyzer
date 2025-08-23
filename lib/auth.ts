@@ -87,10 +87,10 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { 
     strategy: "jwt",
-    // Session expires after 1 hour of inactivity
-    maxAge: 60 * 60, // 1 hour
-    // Update session token every 15 minutes
-    updateAge: 15 * 60, // 15 minutes
+    // Session expires after 30 days of inactivity
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    // Update session token every 4 hours
+    updateAge: 4 * 60 * 60, // 4 hours
   },
   pages: {
     signIn: "/auth/signin",
@@ -138,7 +138,7 @@ export const authOptions: NextAuthOptions = {
       // Check if token is still valid (not older than session maxAge)
       const now = Math.floor(Date.now() / 1000)
       const tokenAge = now - (token.iat as number || now)
-      const maxAge = 60 * 60 // 1 hour (same as session.maxAge)
+      const maxAge = 30 * 24 * 60 * 60 // 30 days (same as session.maxAge)
       
       if (tokenAge > maxAge) {
         // Token has expired - we'll let NextAuth handle this
