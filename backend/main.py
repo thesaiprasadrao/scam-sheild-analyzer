@@ -18,6 +18,8 @@ from pydantic import BaseModel
 import logging
 from dotenv import load_dotenv
 import google.generativeai as genai
+# from google.cloud import translate_v2 as translate
+# import httpx
 
 # Load environment variables
 load_dotenv()
@@ -64,6 +66,16 @@ class AnalysisResponse(BaseModel):
     recommendedActions: List[str]
     gemini_confidence: Optional[float] = None
     analysis_method: Optional[str] = "PATTERN_BASED"
+
+class TranslateRequest(BaseModel):
+    q: str
+    target: str
+    source: Optional[str] = None
+
+class TranslateResponse(BaseModel):
+    translatedText: str
+    detectedSourceLanguage: Optional[str] = None
+    targetLanguage: str
 
 class ScamAnalyzer:
     """Core analysis engine for detecting scam patterns"""
@@ -627,6 +639,69 @@ async def analyze_message(
     except Exception as e:
         logger.error(f"Unexpected error during analysis: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error occurred")
+
+
+@app.post("/api/translate", response_model=TranslateResponse)
+async def translate_text(body: TranslateRequest):
+    """Translate text using Google Cloud Translation API.
+
+    Supports two auth modes:
+    - Service Account via GOOGLE_APPLICATION_CREDENTIALS or ambient creds
+    - API key via GOOGLE_TRANSLATE_API_KEY (uses REST call)
+    """
+    try:
+        text = body.q.strip() if body.q else ""
+        if not text:
+            raise HTTPException(status_code=400, detail="Text (q) is required")
+
+        target = body.target
+        if not target:
+            raise HTTPException(status_code=400, detail="Target language is required")
+
+        api_key = os.getenv("GOOGLE_TRANSLATE_API_KEY")
+
+        # Prefer service account if available
+        use_service_account = bool(os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("GOOGLE_CLOUD_PROJECT"))
+
+        if use_service_account and not api_key:
+            # Use Cloud Translation library (v2 for simplicity)
+            client = translate.Client()
+            result = client.translate(text, target_language=target, source_language=body.source)
+            return TranslateResponse(
+                translatedText=result.get("translatedText", ""),
+                detectedSourceLanguage=result.get("detectedSourceLanguage"),
+                targetLanguage=target,
+            )
+        else:
+            # Use REST with API key
+            if not api_key:
+                raise HTTPException(status_code=500, detail="No Google Translate credentials found. Set GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_TRANSLATE_API_KEY")
+
+            url = "https://translation.googleapis.com/language/translate/v2"
+            payload = {"q": text, "target": target}
+            if body.source:
+                payload["source"] = body.source
+
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                resp = await client.post(url, params={"key": api_key}, json=payload)
+                if resp.status_code != 200:
+                    logger.error(f"Translate API error {resp.status_code}: {resp.text}")
+                    raise HTTPException(status_code=resp.status_code, detail="Translation request failed")
+                data = resp.json()
+                translations = data.get("data", {}).get("translations", [])
+                if not translations:
+                    raise HTTPException(status_code=500, detail="No translation returned")
+                first = translations[0]
+                return TranslateResponse(
+                    translatedText=first.get("translatedText", ""),
+                    detectedSourceLanguage=first.get("detectedSourceLanguage"),
+                    targetLanguage=target,
+                )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Unexpected translation error")
+        raise HTTPException(status_code=500, detail="Internal server error during translation")
 
 if __name__ == "__main__":
     # Run the server
