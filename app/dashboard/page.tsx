@@ -54,7 +54,7 @@ export default function ScamShieldAnalyzer() {
             onClick={() => router.push('/dashboard')}
           >
             <Shield className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
+            <a href="/dashboard"><h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1></a>
           </div>
           
           {/* Right side - Profile and Theme Toggle */}
