@@ -1,7 +1,7 @@
 """
 Scam Shield Backend API
 A FastAPI application for analyzing text and images to detect scam patterns
-Enhanced with Google Gemini AI for advanced scam detection
+Enhanced with Groq LLM for advanced scam detection
 """
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
@@ -17,9 +17,7 @@ from typing import Optional, List, Dict
 from pydantic import BaseModel
 import logging
 from dotenv import load_dotenv
-import google.generativeai as genai
-# from google.cloud import translate_v2 as translate
-# import httpx
+import groq as groq_sdk
 
 # Load environment variables
 load_dotenv()
@@ -28,15 +26,16 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configure Gemini AI
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+# Configure Groq
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    logger.info("Gemini AI configured successfully")
+if GROQ_API_KEY:
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    logger.info("Groq configured successfully")
 else:
-    logger.warning("Gemini API key not found. Falling back to pattern-based analysis only.")
+    groq_client = None
+    logger.warning("Groq API key not found. Falling back to pattern-based analysis only.")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -64,7 +63,7 @@ class AnalysisResponse(BaseModel):
     analyzedText: str
     redFlags: List[RedFlag]
     recommendedActions: List[str]
-    gemini_confidence: Optional[float] = None
+    groq_confidence: Optional[float] = None
     analysis_method: Optional[str] = "PATTERN_BASED"
 
 class TranslateRequest(BaseModel):
@@ -174,96 +173,89 @@ class ScamAnalyzer:
             r'you\s+have\s+won.*₹'
         ]
 
-    def analyze_with_gemini(self, text: str) -> Dict:
-        """Use Gemini AI to analyze text for scam patterns"""
+    def analyze_with_groq(self, text: str) -> Dict:
+        """Use Groq LLM to analyze text for scam patterns"""
         try:
-            if not GEMINI_API_KEY:
-                logger.warning("Gemini API key not available, using pattern-based analysis")
+            if not groq_client:
+                logger.warning("Groq client not available, using pattern-based analysis")
                 return None
-            
-            model = genai.GenerativeModel(GEMINI_MODEL)
-            
-            prompt = f"""
-            You are an expert cybersecurity analyst specializing in scam detection. Analyze the following message for potential scam indicators.
 
-            Message to analyze: "{text}"
+            prompt = f"""You are an expert cybersecurity analyst specializing in scam detection. Analyze the following message for potential scam indicators.
 
-            Please analyze this message and provide a response in JSON format with the following structure:
-            {{
-                "riskLevel": "HIGH_RISK" | "MEDIUM_RISK" | "LOOKS_SAFE",
-                "confidence": 0.0-1.0,
-                "redFlags": [
-                    {{
-                        "title": "Brief category name",
-                        "description": "Detailed explanation of why this is suspicious"
-                    }}
-                ],
-                "reasoning": "Detailed explanation of your analysis",
-                "patterns_detected": ["list of specific scam patterns found"]
-            }}
+Message to analyze: "{text}"
 
-            Consider these scam indicators:
-            1. Urgency and fear tactics (account suspension, immediate action required)
-            2. Requests for personal/financial information (OTP, password, bank details)
-            3. Unofficial contact methods (personal phone numbers instead of official helplines)
-            4. Financial demands (fees, payments, processing charges)
-            5. Too-good-to-be-true offers (easy money, guaranteed income)
-            6. Suspicious links or URLs
-            7. Language patterns common in scams (congratulations, you have won, etc.)
-            8. Impersonation of legitimate organizations
-            9. Grammar and spelling errors
-            10. Inconsistent formatting or unprofessional appearance
+Please analyze this message and provide a response in JSON format with the following structure:
+{{
+    "riskLevel": "HIGH_RISK" | "MEDIUM_RISK" | "LOOKS_SAFE",
+    "confidence": 0.0-1.0,
+    "redFlags": [
+        {{
+            "title": "Brief category name",
+            "description": "Detailed explanation of why this is suspicious"
+        }}
+    ],
+    "reasoning": "Detailed explanation of your analysis",
+    "patterns_detected": ["list of specific scam patterns found"]
+}}
 
-            Risk Level Guidelines:
-            - HIGH_RISK: Clear scam indicators, immediate danger to user
-            - MEDIUM_RISK: Suspicious elements but not definitively a scam
-            - LOOKS_SAFE: No significant scam indicators detected
+Consider these scam indicators:
+1. Urgency and fear tactics (account suspension, immediate action required)
+2. Requests for personal/financial information (OTP, password, bank details)
+3. Unofficial contact methods (personal phone numbers instead of official helplines)
+4. Financial demands (fees, payments, processing charges)
+5. Too-good-to-be-true offers (easy money, guaranteed income)
+6. Suspicious links or URLs
+7. Language patterns common in scams (congratulations, you have won, etc.)
+8. Impersonation of legitimate organizations
+9. Grammar and spelling errors
+10. Inconsistent formatting or unprofessional appearance
 
-            Respond only with valid JSON.
-            """
-            
-            response = model.generate_content(prompt)
-            
-            # Parse the JSON response
-            try:
-                # Clean the response text and extract JSON
-                response_text = response.text.strip()
-                
-                # Remove any markdown code blocks if present
-                if response_text.startswith('```json'):
-                    response_text = response_text[7:]
-                if response_text.startswith('```'):
-                    response_text = response_text[3:]
-                if response_text.endswith('```'):
-                    response_text = response_text[:-3]
-                
-                response_text = response_text.strip()
-                
-                gemini_result = json.loads(response_text)
-                
-                # Validate the response structure
-                required_fields = ['riskLevel', 'confidence', 'redFlags', 'reasoning']
-                for field in required_fields:
-                    if field not in gemini_result:
-                        logger.warning(f"Missing field {field} in Gemini response")
-                        return None
-                
-                # Ensure risk level is one of the expected values
-                valid_risk_levels = ['HIGH_RISK', 'MEDIUM_RISK', 'LOOKS_SAFE']
-                if gemini_result['riskLevel'] not in valid_risk_levels:
-                    logger.warning(f"Invalid risk level: {gemini_result['riskLevel']}")
+Risk Level Guidelines:
+- HIGH_RISK: Clear scam indicators, immediate danger to user
+- MEDIUM_RISK: Suspicious elements but not definitively a scam
+- LOOKS_SAFE: No significant scam indicators detected
+
+Respond only with valid JSON."""
+
+            completion = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=1024,
+            )
+
+            response_text = completion.choices[0].message.content.strip()
+
+            # Strip markdown code fences if present
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.startswith("```"):
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
+
+            groq_result = json.loads(response_text)
+
+            required_fields = ["riskLevel", "confidence", "redFlags", "reasoning"]
+            for field in required_fields:
+                if field not in groq_result:
+                    logger.warning(f"Missing field {field} in Groq response")
                     return None
-                
-                logger.info(f"Gemini analysis completed with confidence: {gemini_result.get('confidence', 'N/A')}")
-                return gemini_result
-                
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse Gemini JSON response: {e}")
-                logger.error(f"Raw response: {response.text}")
+
+            valid_risk_levels = ["HIGH_RISK", "MEDIUM_RISK", "LOOKS_SAFE"]
+            if groq_result["riskLevel"] not in valid_risk_levels:
+                logger.warning(f"Invalid risk level: {groq_result['riskLevel']}")
                 return None
-                
+
+            logger.info(f"Groq analysis completed with confidence: {groq_result.get('confidence', 'N/A')}")
+            return groq_result
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Groq JSON response: {e}")
+            return None
         except Exception as e:
-            logger.error(f"Error calling Gemini API: {str(e)}")
+            logger.error(f"Error calling Groq API: {str(e)}")
             return None
 
     def extract_text_from_image(self, image_file: UploadFile) -> str:
@@ -282,22 +274,22 @@ class ScamAnalyzer:
             raise HTTPException(status_code=400, detail="Failed to process image")
 
     def analyze_text(self, text: str) -> Dict:
-        """Analyze text for scam patterns using Gemini AI and pattern matching"""
+        """Analyze text for scam patterns using Groq LLM and pattern matching"""
         if not text or text.strip() == "":
             raise HTTPException(status_code=400, detail="No text to analyze")
         
-        # First, try Gemini AI analysis
-        gemini_result = self.analyze_with_gemini(text)
-        
+        # First, try Groq LLM analysis
+        groq_result = self.analyze_with_groq(text)
+
         # Also run traditional pattern-based analysis for comparison and fallback
         pattern_result = self._analyze_with_patterns(text)
-        
+
         # Combine results intelligently
-        if gemini_result:
-            # Use Gemini as primary analysis but enhance with pattern insights
-            final_result = self._combine_analyses(gemini_result, pattern_result, text)
+        if groq_result:
+            # Use Groq as primary analysis but enhance with pattern insights
+            final_result = self._combine_analyses(groq_result, pattern_result, text)
         else:
-            # Fallback to pattern-based analysis if Gemini fails
+            # Fallback to pattern-based analysis if Groq fails
             logger.info("Using pattern-based analysis as fallback")
             final_result = pattern_result
         
@@ -411,29 +403,29 @@ class ScamAnalyzer:
             "riskScore": risk_score  # Internal use, not in API response
         }
 
-    def _combine_analyses(self, gemini_result: Dict, pattern_result: Dict, text: str) -> Dict:
-        """Combine Gemini AI analysis with pattern-based analysis for enhanced accuracy"""
-        
-        # Start with Gemini's risk assessment but validate with patterns
-        final_risk_level = gemini_result["riskLevel"]
+    def _combine_analyses(self, groq_result: Dict, pattern_result: Dict, text: str) -> Dict:
+        """Combine Groq LLM analysis with pattern-based analysis for enhanced accuracy"""
+
+        # Start with Groq's risk assessment but validate with patterns
+        final_risk_level = groq_result["riskLevel"]
         final_flags = []
-        
-        # Convert Gemini red flags to our format
-        for flag in gemini_result.get("redFlags", []):
+
+        # Convert Groq red flags to our format
+        for flag in groq_result.get("redFlags", []):
             final_flags.append({
                 "title": flag["title"],
                 "description": flag["description"]
             })
-        
-        # Add any additional flags from pattern analysis that Gemini might have missed
-        gemini_flag_titles = {flag["title"].lower() for flag in gemini_result.get("redFlags", [])}
-        
+
+        # Add any additional flags from pattern analysis that Groq might have missed
+        groq_flag_titles = {flag["title"].lower() for flag in groq_result.get("redFlags", [])}
+
         for pattern_flag in pattern_result["redFlags"]:
             pattern_title_lower = pattern_flag["title"].lower()
-            
-            # Check if this type of flag is already covered by Gemini
-            if not any(gemini_title in pattern_title_lower or pattern_title_lower in gemini_title 
-                      for gemini_title in gemini_flag_titles):
+
+            # Check if this type of flag is already covered by Groq
+            if not any(groq_title in pattern_title_lower or pattern_title_lower in groq_title
+                      for groq_title in groq_flag_titles):
                 final_flags.append(pattern_flag)
         
         # Adjust risk level if pattern analysis suggests higher risk
@@ -445,7 +437,7 @@ class ScamAnalyzer:
                 final_risk_level = "HIGH_RISK"
                 logger.info("Risk level escalated to HIGH_RISK based on pattern analysis")
         
-        # If Gemini says HIGH_RISK but patterns don't strongly support it, add a note
+        # If Groq says HIGH_RISK but patterns don't strongly support it, add a note
         elif final_risk_level == "HIGH_RISK" and pattern_risk_level == "LOOKS_SAFE":
             if pattern_result["riskScore"] == 0:
                 # Add a flag noting the discrepancy
@@ -456,18 +448,18 @@ class ScamAnalyzer:
         
         # Generate enhanced recommended actions
         recommended_actions = self._get_enhanced_recommended_actions(
-            final_risk_level, 
-            final_flags, 
-            gemini_result.get("reasoning", ""),
-            gemini_result.get("confidence", 0.5)
+            final_risk_level,
+            final_flags,
+            groq_result.get("reasoning", ""),
+            groq_result.get("confidence", 0.5)
         )
-        
+
         return {
             "riskLevel": final_risk_level,
             "analyzedText": text,
             "redFlags": final_flags,
             "recommendedActions": recommended_actions,
-            "gemini_confidence": gemini_result.get("confidence", 0.5),
+            "groq_confidence": groq_result.get("confidence", 0.5),
             "analysis_method": "AI_ENHANCED"
         }
 
@@ -627,7 +619,7 @@ async def analyze_message(
             analyzedText=analysis_result["analyzedText"],
             redFlags=[RedFlag(**flag) for flag in analysis_result["redFlags"]],
             recommendedActions=analysis_result["recommendedActions"],
-            gemini_confidence=analysis_result.get("gemini_confidence"),
+            groq_confidence=analysis_result.get("groq_confidence"),
             analysis_method=analysis_result.get("analysis_method", "PATTERN_BASED")
         )
         
