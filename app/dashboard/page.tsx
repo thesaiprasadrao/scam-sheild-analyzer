@@ -83,8 +83,10 @@ export default function ScamShieldAnalyzer() {
       const formData = new FormData()
       if (inputText.trim()) formData.append("message_text", inputText.trim())
       if (uploadedFile) formData.append("message_screenshot", uploadedFile)
-      const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+      
+      const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "")
       const backendUrls = [`${backendBase}/api/analyze`]
+      
       if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
         backendUrls.push("http://127.0.0.1:8000/api/analyze")
       }
@@ -114,7 +116,8 @@ export default function ScamShieldAnalyzer() {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-      alert(`Error connecting to analysis service: ${errorMessage}. If deployed, ensure NEXT_PUBLIC_BACKEND_URL is set correctly in Vercel and the backend is live.`)
+      const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "")
+      alert(`Failed to fetch from ${backendBase}/api/analyze. Error: ${errorMessage}. Please check your browser's Developer Tools (Network tab) for the exact error (CORS, mixed-content, etc).`)
     } finally {
       setIsAnalyzing(false)
     }
