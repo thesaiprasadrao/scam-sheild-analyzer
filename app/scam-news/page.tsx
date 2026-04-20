@@ -146,6 +146,13 @@ export default function ScamNewsPage() {
     </header>
   )
 
+  const inferSeverity = (title: string, description: string): string => {
+    const text = (title + " " + description).toLowerCase()
+    if (text.match(/urgent|critical|warning|alert|steal|fraud|millions|billion|hack|breach|attack/)) return "High"
+    if (text.match(/caution|suspicious|scam|phishing|fake|risk/)) return "Medium"
+    return "Low"
+  }
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "High":
@@ -231,8 +238,8 @@ export default function ScamNewsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className={getSeverityColor("Medium")}>
-                              Alert
+                            <Badge variant="outline" className={getSeverityColor(inferSeverity(item.title, item.description ?? ""))}>
+                              {inferSeverity(item.title, item.description ?? "")}
                             </Badge>
                             {item.category?.map((cat, i) => (
                               <Badge key={i} variant="secondary">{cat}</Badge>
