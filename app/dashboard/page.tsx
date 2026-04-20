@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Shield, ShieldAlert, Upload, FileText, CheckCircle, ArrowLeft, BookOpen, Newspaper } from "lucide-react"
+import { Shield, ShieldAlert, Upload, FileText, CheckCircle, ArrowLeft, BookOpen, Newspaper, BarChart2 } from "lucide-react"
 import ThemeToggle from "@/components/theme-toggle"
 import { useSession, signOut } from "next-auth/react"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
@@ -19,6 +19,7 @@ import ScamEducationSection from "@/components/scam-education-section"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import ProfileDropdown from "@/components/profile-dropdown"
 import ScrollToTop from "@/components/scroll-to-top"
+import { logAnalysis } from "@/lib/analytics"
 
 interface AnalysisResult {
   riskLevel: string
@@ -57,8 +58,16 @@ export default function ScamShieldAnalyzer() {
             <a href="/dashboard"><h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1></a>
           </div>
           
-          {/* Right side - Profile and Theme Toggle */}
+          {/* Right side - Nav links, Profile and Theme Toggle */}
           <div className="flex items-center gap-3">
+            <Link href="/analytics" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <BarChart2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </Link>
+            <Link href="/scam-news" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Newspaper className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
+            </Link>
             <ThemeToggle />
             <ProfileDropdown />
           </div>
@@ -96,6 +105,14 @@ export default function ScamShieldAnalyzer() {
       const result: AnalysisResult = await response.json()
       setAnalysisResult(result)
       setCurrentScreen("results")
+      // Log this scan to analytics
+      if (session?.user?.email) {
+        logAnalysis(
+          session.user.email,
+          result.riskLevel as "HIGH_RISK" | "MEDIUM_RISK" | "LOOKS_SAFE",
+          result.redFlags.map((f) => f.title)
+        )
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
       alert(`Error connecting to analysis service: ${errorMessage}. Please check if the backend is running on port 8000.`)
