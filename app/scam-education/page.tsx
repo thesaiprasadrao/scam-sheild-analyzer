@@ -4,7 +4,8 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, ArrowLeft, ShieldAlert, BookOpen } from "lucide-react"
+import { Shield, ArrowLeft, ShieldAlert, BookOpen, BarChart2, Newspaper } from "lucide-react"
+import Link from "next/link"
 import ThemeToggle from "@/components/theme-toggle"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
 import ProfileDropdown from "@/components/profile-dropdown"
@@ -29,8 +30,16 @@ export default function ScamEducationPage() {
             <h1 className="text-2xl font-bold font-serif text-primary">ScamShield</h1>
           </div>
           
-          {/* Right side - Profile and Theme Toggle */}
+          {/* Right side - Nav links, Profile and Theme Toggle */}
           <div className="flex items-center gap-3">
+            <Link href="/analytics" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <BarChart2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </Link>
+            <Link href="/scam-news" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Newspaper className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
+            </Link>
             <ThemeToggle />
             <ProfileDropdown />
           </div>
