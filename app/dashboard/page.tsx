@@ -274,7 +274,7 @@ export default function ScamShieldAnalyzer() {
                   Privacy Policy
                 </a>
               </div>
-              <p>Friday, August 22, 2025</p>
+              <p>© {new Date().getFullYear()} ScamShield</p>
             </div>
           </div>
         </footer>

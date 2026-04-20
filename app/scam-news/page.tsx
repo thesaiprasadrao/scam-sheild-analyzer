@@ -294,7 +294,7 @@ export default function ScamNewsPage() {
                   Privacy Policy
                 </a>
               </div>
-              <p>Friday, August 23, 2025</p>
+              <p>© {new Date().getFullYear()} ScamShield</p>
             </div>
           </div>
         </footer>

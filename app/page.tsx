@@ -140,7 +140,7 @@ export default function Home() {
 
       <footer className="border-t py-8 px-4">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>&copy; 2025 ScamShield. Protecting you from digital threats.</p>
+          <p>&copy; {new Date().getFullYear()} ScamShield. Protecting you from digital threats.</p>
         </div>
       </footer>
     </div>
