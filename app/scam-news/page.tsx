@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Newspaper, ExternalLink, Clock, TrendingUp, Loader2, BarChart2 } from "lucide-react"
 import Link from "next/link"
@@ -166,127 +165,104 @@ export default function ScamNewsPage() {
   }
 
   return (
-    <ProtectedPageWrapper 
+    <ProtectedPageWrapper
       requireAuth={true}
       redirectTo="/auth/signin"
       onSessionInvalid={() => {
         console.log("Session invalidated, redirecting to signin")
       }}
     >
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <SharedHeader />
 
-        <main className="container mx-auto px-4 py-12 max-w-6xl">
-          {/* Header Section */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
-                <Newspaper className="h-8 w-8 text-primary" />
+        <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+          {/* Page header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+                <Newspaper className="h-5 w-5 text-primary" />
               </div>
+              <h1 className="text-2xl font-bold font-serif text-foreground">Live Scam News</h1>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold font-serif text-foreground mb-4">
-              Live Scam News Feed
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Stay updated with the latest scam alerts, trends, and security warnings from around the world.
+            <p className="text-muted-foreground text-sm ml-13">
+              Real-time alerts and security warnings — stay one step ahead.
             </p>
           </div>
 
           {/* Trending Alert */}
-          <Card className="mb-8 border-orange-200 bg-orange-50/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <TrendingUp className="h-5 w-5" />
-                Trending Alert
-              </CardTitle>
-              <CardDescription className="text-orange-700">
-                AI voice cloning scams are increasing by 300% this month. Be extra cautious of unexpected calls from "family members" asking for money.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* News Feed */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold font-serif mb-6">Latest Scam Alerts</h2>
-            
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : error ? (
-              <Card className="p-4">
-                <CardContent className="text-center text-red-500">{error}</CardContent>
-              </Card>
-            ) : (
-              <>
-                {news.map((item, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className={getSeverityColor(inferSeverity(item.title, item.description ?? ""))}>
-                              {inferSeverity(item.title, item.description ?? "")}
-                            </Badge>
-                            {item.category?.map((cat, i) => (
-                              <Badge key={i} variant="secondary">{cat}</Badge>
-                            ))}
-                          </div>
-                          <CardTitle className="text-xl hover:text-primary cursor-pointer transition-colors">
-                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                              {item.title}
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </CardTitle>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatDate(item.pubDate)}
-                            </div>
-                            <span>•</span>
-                            <span>{item.source_id}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">{item.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-                {news.length === 0 && !error && (
-                  <Card className="p-4">
-                    <CardContent className="text-center text-muted-foreground">
-                      No news articles found
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
+          <div className="flex items-start gap-3 mb-8 p-4 rounded-xl border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-800">
+            <TrendingUp className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300 mb-0.5">Trending this month</p>
+              <p className="text-sm text-orange-700 dark:text-orange-400">AI voice cloning scams up 300% — be cautious of unexpected calls from "family members" asking for money.</p>
+            </div>
           </div>
 
-          {/* Info Card */}
-          <Card className="mt-12 bg-blue-50/50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-blue-800">Stay Informed</CardTitle>
-              <CardDescription className="text-blue-700">
-                This news feed is updated regularly with the latest scam trends and security alerts. 
-                Knowledge is your best defense against fraud.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          {/* News Feed */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Fetching latest alerts...</p>
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                <span className="text-sm text-destructive">{error}</span>
+              </div>
+            ) : news.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">No news articles found.</div>
+            ) : (
+              news.map((item, index) => {
+                const severity = inferSeverity(item.title, item.description ?? "")
+                const accentColor = severity === "High" ? "bg-red-500" : severity === "Medium" ? "bg-orange-400" : "bg-green-500"
+                const badgeClass = getSeverityColor(severity)
+                return (
+                  <a
+                    key={index}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-0 rounded-xl border border-border hover:border-primary/40 hover:shadow-md transition-all duration-200 overflow-hidden bg-card block"
+                  >
+                    {/* Left severity accent bar */}
+                    <div className={`w-1 flex-shrink-0 ${accentColor}`} />
+                    <div className="flex-1 p-4">
+                      {/* Top row: badge + source + time */}
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <Badge variant="outline" className={`text-xs px-2 py-0 ${badgeClass}`}>
+                          {severity}
+                        </Badge>
+                        {item.category?.slice(0, 2).map((cat, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs px-2 py-0">{cat}</Badge>
+                        ))}
+                        <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(item.pubDate)}
+                        </span>
+                      </div>
+                      {/* Title */}
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors leading-snug mb-1.5 flex items-start gap-1.5">
+                        {item.title}
+                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h3>
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{item.description}</p>
+                      {/* Source */}
+                      <p className="text-xs text-muted-foreground/70 mt-2">{item.source_id}</p>
+                    </div>
+                  </a>
+                )
+              })
+            )}
+          </div>
         </main>
 
         <footer className="border-t bg-card mt-16">
           <div className="container mx-auto px-4 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
               <div className="flex gap-6">
-                <a href="#" className="hover:text-foreground transition-colors">
-                  About Us
-                </a>
-                <a href="#" className="hover:text-foreground transition-colors">
-                  Privacy Policy
-                </a>
+                <a href="#" className="hover:text-foreground transition-colors">About Us</a>
+                <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
               </div>
               <p>© {new Date().getFullYear()} ScamShield</p>
             </div>
