@@ -32,6 +32,12 @@ export function useUserProfile() {
       try {
         const response = await fetch("/api/profile")
         
+        if (response.status === 401) {
+          // Not authenticated yet — expected, not an error
+          setLoading(false)
+          return
+        }
+
         if (!response.ok) {
           throw new Error(`Failed to fetch profile: ${response.status}`)
         }
