@@ -235,10 +235,15 @@ Consider these scam indicators:
 9. Grammar and spelling errors
 10. Inconsistent formatting or unprofessional appearance
 
+CRITICAL INSTRUCTIONS FOR SAFE/TRANSACTIONAL MESSAGES:
+- Legitimate Transaction Alerts: Messages reporting a successful payment, debit, delivery, or login (e.g., "Your transaction of Rs. X on Y is successful") are usually SAFE.
+- Legitimate OTPs: Messages providing a One Time Password or verification code (e.g., from UIDAI, banks, known apps like JioHotstar, slice, Zepto) for a requested action are SAFE. Just mentioning "OTP" or "verification code" does NOT make it a scam. It is a scam ONLY if the message asks the user to *share* or *forward* the OTP/code to someone else.
+- Official Support Numbers: Legitimate alerts often include toll-free or landline customer care numbers (e.g., "If not you, call 080..."). Do NOT flag these as "unofficial contact methods" unless the number is a standard 10-digit personal mobile number acting suspicious.
+
 Risk Level Guidelines:
-- HIGH_RISK: Clear scam indicators, immediate danger to user
-- MEDIUM_RISK: Suspicious elements but not definitively a scam
-- LOOKS_SAFE: No significant scam indicators detected
+- HIGH_RISK: Clear scam indicators, immediate danger to user (e.g., malicious links, requesting to forward an OTP, fake offers).
+- MEDIUM_RISK: Suspicious elements but not definitively a scam.
+- LOOKS_SAFE: Standard transactional alerts, simple OTPs, verification codes, or general safe communication.
 
 Respond only with valid JSON."""
 
