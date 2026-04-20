@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shield, ArrowLeft, Newspaper, ExternalLink, Clock, TrendingUp, Loader2, BarChart2 } from "lucide-react"
+import { Shield, Newspaper, ExternalLink, Clock, TrendingUp, Loader2, BarChart2 } from "lucide-react"
 import Link from "next/link"
 import ThemeToggle from "@/components/theme-toggle"
 import ProtectedPageWrapper from "@/components/protected-page-wrapper"
@@ -191,18 +190,6 @@ export default function ScamNewsPage() {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Stay updated with the latest scam alerts, trends, and security warnings from around the world.
             </p>
-          </div>
-
-          {/* Back Button */}
-          <div className="mb-8">
-            <Button 
-              onClick={() => router.push('/dashboard')} 
-              variant="outline" 
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
           </div>
 
           {/* Trending Alert */}
