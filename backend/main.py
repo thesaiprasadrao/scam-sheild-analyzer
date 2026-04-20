@@ -9,6 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import pytesseract
 from PIL import Image
+
+# Set tesseract path for Railway/nix environments
+_tesseract_candidates = [
+    "/nix/store",  # will be searched below
+    "/usr/bin/tesseract",
+    "/usr/local/bin/tesseract",
+]
+import glob as _glob
+_nix_bins = _glob.glob("/nix/store/*/bin/tesseract")
+if _nix_bins:
+    pytesseract.pytesseract.tesseract_cmd = _nix_bins[0]
 import re
 import io
 import json
