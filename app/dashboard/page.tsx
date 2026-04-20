@@ -83,12 +83,11 @@ export default function ScamShieldAnalyzer() {
       const formData = new FormData()
       if (inputText.trim()) formData.append("message_text", inputText.trim())
       if (uploadedFile) formData.append("message_screenshot", uploadedFile)
-      const currentHost = window.location.hostname
-      const backendUrls = [
-        "http://localhost:8000/api/analyze",
-        `http://${currentHost}:8000/api/analyze`,
-        "http://127.0.0.1:8000/api/analyze",
-      ]
+      const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+      const backendUrls = [`${backendBase}/api/analyze`]
+      if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
+        backendUrls.push("http://127.0.0.1:8000/api/analyze")
+      }
       let response: Response | null = null
       let lastError: Error | null = null
       for (const backendUrl of backendUrls) {
