@@ -114,7 +114,7 @@ export default function ScamShieldAnalyzer() {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-      alert(`Error connecting to analysis service: ${errorMessage}. Please check if the backend is running on port 8000.`)
+      alert(`Error connecting to analysis service: ${errorMessage}. If deployed, ensure NEXT_PUBLIC_BACKEND_URL is set correctly in Vercel and the backend is live.`)
     } finally {
       setIsAnalyzing(false)
     }
