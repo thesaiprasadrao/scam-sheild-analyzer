@@ -271,7 +271,7 @@ Respond only with valid JSON."""
             
         except Exception as e:
             logger.error(f"Error extracting text from image: {str(e)}")
-            raise HTTPException(status_code=400, detail="Failed to process image")
+            raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
 
     def analyze_text(self, text: str) -> Dict:
         """Analyze text for scam patterns using Groq LLM and pattern matching"""
