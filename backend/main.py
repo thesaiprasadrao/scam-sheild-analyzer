@@ -30,6 +30,8 @@ from pydantic import BaseModel
 import logging
 from dotenv import load_dotenv, find_dotenv
 import groq as groq_sdk
+import httpx
+from google.cloud import translate_v2 as translate
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -835,4 +837,5 @@ async def translate_text(body: TranslateRequest):
 
 if __name__ == "__main__":
     # Run the server
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")
