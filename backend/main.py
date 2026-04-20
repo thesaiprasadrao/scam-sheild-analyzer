@@ -838,4 +838,4 @@ async def translate_text(body: TranslateRequest):
 if __name__ == "__main__":
     # Run the server
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info")
