@@ -520,8 +520,18 @@ export default function ScamShieldAnalyzer() {
                 Privacy Policy
               </a>
             </div>
-            <p>Friday, August 23, 2025</p>
-          </div>
+<p>
+  {new Date().toLocaleString("en-US", {
+    weekday: "long",   // Day (Monday)
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: true       // optional (AM/PM format)
+  })}
+</p>          </div>
         </div>
       </footer>
     </div>
