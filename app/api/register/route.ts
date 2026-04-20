@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
   const { email, password, name } = parsed.data
-  const result = registerUser({ email, password, name })
+  const result = await registerUser({ email, password, name })
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 })
   }

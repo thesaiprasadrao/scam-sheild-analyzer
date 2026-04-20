@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const defaultPreferences = getDefaultPreferences(profileType)
     const finalPreferences = { ...defaultPreferences, ...preferences }
 
-    const result = updateUserProfile({
+    const result = await updateUserProfile({
       email: session.user.email,
       profileType,
       preferences: finalPreferences,
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const userProfile = getUserProfile(session.user.email)
+  const userProfile = await getUserProfile(session.user.email)
   
   if (!userProfile) {
     return NextResponse.json({ error: "User not found" }, { status: 404 })
