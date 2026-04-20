@@ -578,6 +578,20 @@ async def root():
     """Health check endpoint"""
     return {"message": "Scam Shield API is running", "status": "healthy"}
 
+@app.get("/debug/tesseract")
+async def debug_tesseract():
+    import subprocess
+    import glob as g
+    nix_bins = g.glob("/nix/store/*/bin/tesseract")
+    which = subprocess.run(["which", "tesseract"], capture_output=True, text=True)
+    find = subprocess.run(["find", "/usr", "-name", "tesseract", "-type", "f"], capture_output=True, text=True)
+    return {
+        "nix_bins": nix_bins,
+        "which": which.stdout.strip(),
+        "find_usr": find.stdout.strip(),
+        "pytesseract_cmd": pytesseract.pytesseract.tesseract_cmd,
+    }
+
 @app.post("/api/analyze", response_model=AnalysisResponse)
 async def analyze_message(
     message_text: Optional[str] = Form(None),
