@@ -62,5 +62,13 @@
     "passwordHash": "hf5cbfd37",
     "profileCompleted": false,
     "createdAt": "2025-08-23T10:34:25.019Z"
+  },
+  {
+    "id": "1d78cd4f-ecf3-4b85-b7b7-c3014a6926df",
+    "email": "test@gmail.com",
+    "name": "Test",
+    "passwordHash": "hbb9b8184",
+    "profileCompleted": false,
+    "createdAt": "2026-04-20T13:15:42.640Z"
   }
 ]

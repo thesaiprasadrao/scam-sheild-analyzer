@@ -37,3 +37,4 @@ __pycache__/
 
 .omc
 .data
+.env.local
